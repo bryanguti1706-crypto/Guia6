@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Categorías</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .user-info {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 70%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #667eea;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #5a67d8;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #eef1f7;
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .logout {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: red;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Gestión de Categorías</h1>
+
+    <!-- 👤 Usuario -->
+    <div class="user-info" id="userInfo">
+        Cargando usuario...
+    </div>
+
+    <!-- FORM -->
+    <form id="categoryForm">
+        <input type="text" id="description" placeholder="Nombre de la categoría" required>
+        <button type="submit">Agregar</button>
+    </form>
+
+    <br>
+
+    <button onclick="loadCategories()">Obtener categorías</button>
+
+    <h2>Lista de categorías</h2>
+    <ul id="categoryList"></ul>
+
+    <a href="/logout" class="logout">Cerrar sesión</a>
+
+</div>
+
+<script>
+    const API_URL = "/categories";
+
+    // 🔥 Obtener usuario logueado
+    async function loadUser() {
+        try {
+            const response = await fetch("/user");
+            const user = await response.json();
+
+            document.getElementById("userInfo").innerText =
+                "👤 " + (user.name || user.username);
+        } catch (error) {
+            document.getElementById("userInfo").innerText =
+                "Usuario autenticado";
+        }
+    }
+
+    async function loadCategories() {
+        try {
+            const response = await fetch(API_URL);
+            const categories = await response.json();
+
+            const list = document.getElementById("categoryList");
+            list.innerHTML = "";
+
+            categories.forEach(category => {
+                const li = document.createElement("li");
+                li.textContent = category.description;
+                list.appendChild(li);
+            });
+        } catch (error) {
+            console.error("Error al cargar categorías:", error);
+        }
+    }
+
+    document.getElementById("categoryForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const description = document.getElementById("description").value;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ description: description })
+            });
+
+            if (response.ok) {
+                alert("Categoría agregada correctamente");
+                document.getElementById("description").value = "";
+                loadCategories();
+            } else {
+                alert("Error al agregar categoría");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    });
+
+    // 🔥 Cargar todo al iniciar
+    loadUser();
+    loadCategories();
+</script>
+
+</body>
+</html>
